@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar_pagos_online</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+        google.charts.load('current', {'packages':['corechart']});
+        google.charts.setOnLoadCallback(initialize);
+
+        function initialize() {
+            document.getElementById('nav-view-chart').addEventListener('click', function(event) {
+                event.preventDefault();
+                showContainer('view-chart-container');
+                drawChart();
+            });
+        }
+
+        function showContainer(containerId) {
+            const containers = document.querySelectorAll('.container');
+            containers.forEach(container => {
+                container.classList.add('hidden');
+                container.classList.remove('visible');
+            });
+
+            const targetContainer = document.getElementById(containerId);
+            if (targetContainer) {
+                targetContainer.classList.add('visible');
+                targetContainer.classList.remove('hidden');
+            }
+        }
+
+        function drawChart() {
+            fetch('/api/suma_pagos_por_mes')
+                .then(response => response.json())
+                .then(data => {
+                    var dataArray = [['Mes', 'Total']];
+                    data.forEach(item => {
+                        dataArray.push(['Mes ' + item.mes, parseFloat(item.total)]);
+                    });
+
+                    var googleData = google.visualization.arrayToDataTable(dataArray);
+
+                    var options = {
+                        title: 'Suma Total de Pagos por Mes',
+                        curveType: 'function',
+                        legend: { position: 'bottom' }
+                    };
+
+                    var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
+                    chart.draw(googleData, options);
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    </script>
+</head>
+<body>
+    <div class="navbar">
+        <a href="#" id="nav-register" onclick="showContainer('register-container')">Registrar Pago</a>
+        <a href="#" id="nav-add-type" onclick="showContainer('add-type-container')">Agregar Tipo de Pago</a>
+        <a href="#" id="nav-view-payments" onclick="showContainer('view-payments-container')">Ver Pago por Mes</a>
+        <a href="#" id="nav-view-chart">Gráfica de Pago por Mes</a>
+    </div>
+    <div id="register-container" class="container">
+        <h2>Registrar Pago</h2>
+        <form id="payment-form" class="form-group">
+            <label for="tipo_pago">Tipo de Pago</label>
+            <select id="tipo_pago" name="tipo_pago" required>
+                <!-- Opciones se llenarán dinámicamente -->
+            </select>
+
+            <label for="cantidad">Cantidad</label>
+            <input type="number" id="cantidad" name="cantidad" step="0.01" required> 
+
+            <label for="fecha">Fecha</label>
+            <input type="date" id="fecha" name="fecha" required>
+
+            <button type="submit" class="button-submit">Registrar</button>
+        </form>
+    </div>
+
+    <div id="add-type-container" class="container">
+        <h2>Agregar Tipo de Pago</h2>
+        <form id="tipo-pago-form" class="form-group">
+            <label for="nuevo_tipo_pago">Nuevo Tipo de Pago</label>
+            <input type="text" id="nuevo_tipo_pago" name="nuevo_tipo_pago" required>
+            <button type="submit" class="button-submit">Agregar</button>
+        </form>
+    </div>
+
+    <div id="view-payments-container" class="container">
+        <h2>Ver Pagos por Mes</h2>
+        <form id="month-form" class="form-group">
+            <label for="mes">Mes</label>
+            <select id="mes" name="mes" required>
+                <option value="1">Enero</option>
+                <option value="2">Febrero</option>
+                <option value="3">Marzo</option>
+                <option value="4">Abril</option>
+                <option value="5">Mayo</option>
+                <option value="6">Junio</option>
+                <option value="7">Julio</option>
+                <option value="8">Agosto</option>
+                <option value="9">Septiembre</option>
+                <option value="10">Octubre</option>
+                <option value="11">Noviembre</option>
+                <option value="12">Diciembre</option>
+            </select>
+
+            <button type="submit" class="button-submit">Ver Pagos</button>
+        </form>
+        <table id="payments-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tipo de Pago</th>
+                    <th>Cantidad</th>
+                    <th>Fecha</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Aquí se llenarán los pagos -->
+            </tbody>
+        </table>
+        <div id="total-container">
+            <h3>Suma Total de Pagos: <span id="total-pagos">0</span></h3>
+        </div>
+    </div>
+
+    <div id="view-chart-container" class="container-graph">
+        <h2>Gráfica de Pagos por Mes</h2>
+        <div id="curve_chart" style="width: 900px; height: 500px; "></div>
+    </div>
+    <script src="static/main.js"></script>
+    <script src="static/payments.js"></script>
+    <script src="static/types.js"></script>
+</body>
+</html>
