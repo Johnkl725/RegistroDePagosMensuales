@@ -5,8 +5,8 @@ const mysql = require('mysql');
 const path = require('path');
 const app = express();
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json()); // Para poder leer datos enviados por POST
+app.use(bodyParser.urlencoded({ extended: true })); // Para poder leer datos enviados por POST
 
 // Servir archivos estáticos desde el directorio "static"
 app.use('/static', express.static(path.join(__dirname, 'static')));
@@ -48,7 +48,8 @@ app.get('/api/pagos/:mes', (req, res) => {
     const mes = req.params.mes;
     const query = `SELECT pagos.id, tipos_pago.nombre as tipo_pago, pagos.cantidad, pagos.fecha FROM pagos
                    JOIN tipos_pago ON pagos.tipo_pago = tipos_pago.id
-                   WHERE MONTH(pagos.fecha) = ?`;
+                   WHERE MONTH(pagos.fecha) = ?
+                   ORDER BY pagos.id ASC;`;
     db.query(query, [mes], (err, results) => {
         if (err) {
             return res.status(500).send(err);
