@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar_pagos_online</title>
+    <link rel="stylesheet" href="public/styles.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+        google.charts.load('current', {'packages':['corechart']});
+        google.charts.setOnLoadCallback(initialize);
+
+        function initialize() {
+            const chartButton = document.getElementById('nav-view-chart');
+    
+            if (!chartButton) {
+                console.error('No se encontró el botón para ver el gráfico');
+                return;
+            }
+
+            chartButton.addEventListener('click', function(event) {
+                event.preventDefault();
+                showContainer('view-chart-container');
+                drawChart();
+            });
+
+        }
+
+        function showContainer(containerId) {
+    // Ocultar todos los contenedores
+            const containers = document.querySelectorAll('.container');
+            containers.forEach(container => {
+                container.classList.add('hidden');
+                container.classList.remove('visible');
+            });
+
+            // Mostrar el contenedor seleccionado
+            const targetContainer = document.getElementById(containerId);
+            if (targetContainer) {
+                targetContainer.classList.add('visible');
+                targetContainer.classList.remove('hidden');
+            }
+        }
+
+        function drawChart() {
+            fetch('/api/suma_pagos_por_mes')
+                .then(response => response.json())
+                .then(data => {
+                    var dataArray = [['Mes', 'Total']];
+                    data.forEach(item => {
+                        dataArray.push(['Mes ' + item.mes, parseFloat(item.total)]);
+                    });
+
+                    var googleData = google.visualization.arrayToDataTable(dataArray);
+
+                    var options = {
+                        title: 'Suma Total de Pagos por Mes',
+                        curveType: 'function',
+                        legend: { position: 'bottom' }
+                    };
+
+                    var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
+                    chart.draw(googleData, options);
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    </script>
+    <style>
+        .container {
+            display: none;
+        }
+        .visible {
+            display: block !important;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .container-graph {
+            display: none;
+        }
+        .navbar-nav {
+            width: 200px;
+        }
+        .main-content {
+            margin-left: 220px;
+            padding: 20px;
+        }
+        .nav-link {
+            color: white; /* Color del texto */
+            padding: 10px 15px; /* Espaciado */
+            display: flex; /* Usamos flexbox para alinear íconos y texto horizontalmente */
+            align-items: center; /* Alineación vertical */
+            transition: background-color 0.3s ease; /* Transición solo para el color de fondo */
+        }
+
+        .nav-link i {
+            transition: transform 0.3s ease; /* Transición para el movimiento del ícono */
+            margin-right: 10px; /* Espacio entre el ícono y el texto */
+        }
+
+        .nav-link:hover i {
+            transform: translateX(5px); /* Mover solo el ícono 10px hacia la derecha */
+        }
+
+        .nav-link:hover {
+            background-color: #1a3b70; /* Cambia el color de fondo al pasar el cursor */
+        }
+
+        .sidebar {
+            background-color: #f8f9fa; /* Color de fondo del nav */
+        }
+    </style>
+</head>
+<body>
+    <!-- Header con Bootstrap -->
+    <header class="navbar navbar-dark bg-dark">
+        <a class="navbar-brand" href="/" onclick="showContainer('welcome-container')">Registrar Pagos Online</a>
+        <button class="btn btn-outline-light" data-toggle="modal" data-target="#loginModal">
+            <i class="fas fa-user"></i> Iniciar Sesión
+        </button>
+    </header>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="d-flex flex-column vh-100 bg-primary sidebar">
+                <ul class="nav flex-column text-white">
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="#" onclick="showContainer('register-container')">
+                            <i class="fas fa-home"></i> Registrar Pago
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="#" onclick="showContainer('add-type-container')">
+                            <i class="fas fa-plus"></i> Agregar Tipo de Pago
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="#" onclick="showContainer('view-payments-container')">
+                            <i class="fas fa-eye"></i> Ver Pagos por Mes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a id="nav-view-chart" class="nav-link text-white" href="#" onclick="showContainer('view-chart-container')">
+                            <i class="fas fa-chart-line"></i> Gráfica de Pagos
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="#">
+                            <i class="fas fa-info-circle"></i> Información del Sistema
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            
+            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4 main-content">
+                <div id="welcome-container" class="container mt-5 visible">
+                    <h1>Bienvenido al sistema de registro de pagos</h1>
+                    <p class="lead">Este sistema te permitirá registrar pagos, visualizarlos en una gráfica y gestionarlos fácilmente.</p>
+                    <h2>Casos de uso</h2>
+                    <ul>
+                        <li>Registrar pagos de forma rápida y sencilla.</li>
+                        <li>Agregar y gestionar los tipos de pagos permitidos.</li>
+                        <li>Visualizar los pagos realizados en una tabla.</li>
+                        <li>Generar gráficos de pagos por mes para un análisis visual.</li>
+                    </ul>
+                    <h2>Contacto con el creador</h2>
+                    <p>Si tienes dudas o necesitas soporte, puedes comunicarte con el creador del sistema a través de este correo:</p>
+                    <p><strong>Celular:</strong> 974052815</p>
+                </div>
+                
+                <div id="register-container" class="container mt-5">
+                    <h2 class="mb-4">Registrar Pago</h2>
+                    <form id="payment-form">
+                        <!-- Tipo de Pago -->
+                        <div class="form-group">
+                            <label for="tipo_pago">Tipo de Pago</label>
+                            <select id="tipo_pago" name="tipo_pago" class="form-control" required>
+                                <!-- Opciones se llenarán dinámicamente -->
+                            </select>
+                        </div>
+                
+                        <!-- Cantidad -->
+                        <div class="form-group">
+                            <label for="cantidad">Cantidad</label>
+                            <input type="number" id="cantidad" name="cantidad" class="form-control" step="0.01" required>
+                        </div>
+                
+                        <!-- Fecha -->
+                        <div class="form-group">
+                            <label for="fecha">Fecha</label>
+                            <input type="date" id="fecha" name="fecha" class="form-control" required>
+                        </div>
+                
+                        <!-- Botón de Registrar -->
+                        <button type="submit" class="btn btn-primary btn-block">Registrar</button>
+                    </form>
+                </div>
+                
+
+                <div id="add-type-container" class="container mt-5">
+                    <h2 class="mb-4">Agregar Tipo de Pago</h2>
+                    <form id="tipo-pago-form">
+                        <!-- Nuevo Tipo de Pago -->
+                        <div class="form-group">
+                            <label for="nuevo_tipo_pago">Nuevo Tipo de Pago</label>
+                            <input type="text" id="nuevo_tipo_pago" name="nuevo_tipo_pago" class="form-control" required>
+                        </div>
+                
+                        <!-- Botón Agregar -->
+                        <button type="submit" class="btn btn-primary btn-block">Agregar</button>
+                    </form>
+                </div>
+                
+
+                <div id="view-payments-container" class="container mt-5">
+                    <h2 class="mb-4">Ver Pagos por Mes</h2>
+                    <form id="month-form">
+                        <!-- Mes -->
+                        <div class="form-group">
+                            <label for="mes">Mes</label>
+                            <select id="mes" name="mes" class="form-control" required>
+                                <option value="1">Enero</option>
+                                <option value="2">Febrero</option>
+                                <option value="3">Marzo</option>
+                                <option value="4">Abril</option>
+                                <option value="5">Mayo</option>
+                                <option value="6">Junio</option>
+                                <option value="7">Julio</option>
+                                <option value="8">Agosto</option>
+                                <option value="9">Septiembre</option>
+                                <option value="10">Octubre</option>
+                                <option value="11">Noviembre</option>
+                                <option value="12">Diciembre</option>
+                            </select>
+                        </div>
+                
+                        <!-- Botón Ver Pagos -->
+                        <button type="submit" class="btn btn-primary btn-block">Ver Pagos</button>
+                    </form>
+                
+                    <!-- Tabla de Pagos -->
+                    <table id="payments-table" class="table table-striped mt-4">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Tipo de Pago</th>
+                                <th>Cantidad</th>
+                                <th>Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Aquí se llenarán los pagos -->
+                        </tbody>
+                    </table>
+                
+                    <!-- Total de Pagos -->
+                    <div id="total-container" class="mt-4">
+                        <h3>Suma Total de Pagos: <span id="total-pagos">0</span></h3>
+                    </div>
+                </div>
+                
+
+                <div id="view-chart-container" class="container mt-5">
+                    <h2 class="mb-4">Gráfica de Pagos por Mes</h2>
+                    <div id="curve_chart" style="width: 100%; height: 500px;"></div>
+                </div>                
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal de Bootstrap para el formulario de inicio de sesión -->
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="loginModalLabel">Iniciar Sesión</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="email">Correo Electrónico</label>
+                            <input type="email" class="form-control" id="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Contraseña</label>
+                            <input type="password" class="form-control" id="password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="static/main.js"></script>
+    <script src="static/payments.js"></script>
+    <script src="static/types.js"></script>
+</body>
+</html>
